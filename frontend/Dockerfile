@@ -5,26 +5,24 @@ WORKDIR /app
 # Copy package definitions
 COPY package*.json ./
 
-# FIX: npm install instead of npm ci
-RUN npm install --production
+# ❗ IMPORTANT: install ALL deps (dev + prod)
+RUN npm install
 
-# Copy all project files
+# Copy full source
 COPY . .
 
-# Environment variable for API URL
+# Build React app
 ARG REACT_APP_API_URL
 ENV REACT_APP_API_URL=${REACT_APP_API_URL:-/api}
-
-# Build React app
 RUN npm run build
 
 # production stage
 FROM nginx:stable-alpine
 
-# Copy compiled React build into NGINX HTML folder
+# Copy build output to nginx
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Use custom nginx config (optional but recommended)
+# Use custom nginx.conf
 COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
