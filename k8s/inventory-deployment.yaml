@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-service
+  namespace: amazon
+  labels:
+    app: inventory-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      containers:
+        - name: inventory-service
+          image: jithendarramagiri1998/mini-amazon:inventory-service
+          ports:
+            - containerPort: 3004
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://demo:demopassword@postgres.amazon.svc.cluster.local:5432/mini_amazon"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+          readinessProbe:
+            httpGet:
+              path: /inventory/health
+              port: 3004
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /inventory/health
+              port: 3004
+            initialDelaySeconds: 10
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-service
+  namespace: amazon
+spec:

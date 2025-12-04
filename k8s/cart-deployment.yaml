@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  namespace: amazon
+  labels:
+    app: cart-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cart-service
+  template:
+    metadata:
+      labels:
+        app: cart-service
+    spec:
+      containers:
+        - name: cart-service
+          image: jithendarramagiri1998/mini-amazon:cart-service
+          ports:
+            - containerPort: 3005
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://demo:demopassword@postgres.amazon.svc.cluster.local:5432/mini_amazon"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+          readinessProbe:
+            httpGet:
+              path: /cart/health
+              port: 3005
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /cart/health
+              port: 3005
+            initialDelaySeconds: 10
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-service
+  namespace: amazon
+spec:
+  selector:
+    app: cart-service
+  ports:
+    - port: 3005
+      targetPort: 3005
+      protocol: TCP
+  type: ClusterIP

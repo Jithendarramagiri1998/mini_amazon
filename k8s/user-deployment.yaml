@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: amazon
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels: { app: user-service }
+    spec:
+      containers:
+      - name: user
+        image: jithendarramagiri1998/mini-amazon:user-service
+        env:
+          - name: DATABASE_URL
+            value: "postgresql://demo:demopassword@postgres.amazon.svc.cluster.local:5432/mini_amazon"
+          - name: REDIS_URL
+            value: "redis://redis:6379"
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: jwt-secret
+                key: jwt
+        ports:
+          - containerPort: 3001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: amazon
+spec:
+  selector: { app: user-service }
+  ports:
+    - port: 3001
+      targetPort: 3001

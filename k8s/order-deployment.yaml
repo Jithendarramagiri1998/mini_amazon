@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: amazon
+  labels:
+    app: order-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: jithendarramagiri1998/mini-amazon:order-service
+          ports:
+            - containerPort: 3006
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://demo:demopassword@postgres.amazon.svc.cluster.local:5432/mini_amazon"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: CART_SERVICE_URL
+              value: "http://cart-service.amazon.svc.cluster.local:3005"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3006
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3006
+            initialDelaySeconds: 8
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: amazon
+spec:
+  selector:
+    app: order-service
+  ports:
+    - port: 3006
+      targetPort: 3006
+      protocol: TCP
+  type: ClusterIP

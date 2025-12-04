@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: review-service
+  namespace: amazon
+  labels:
+    app: review-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: review-service
+  template:
+    metadata:
+      labels:
+        app: review-service
+    spec:
+      containers:
+        - name: review-service
+          image: jithendarramagiri1998/mini-amazon:review-service
+          ports:
+            - containerPort: 3009
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://demo:demopassword@postgres.amazon.svc.cluster.local:5432/mini_amazon"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3009
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3009
+            initialDelaySeconds: 8
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: review-service
+  namespace: amazon
+spec:
+  selector:
+    app: review-service
+  ports:
+    - port: 3009
+      targetPort: 3009
+      protocol: TCP
+  type: ClusterIP
