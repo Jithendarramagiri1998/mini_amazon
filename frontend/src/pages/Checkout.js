@@ -1,29 +1,34 @@
-import React, {useEffect, useState} from "react";
-import { apiClient } from "../api";
-import { Link, useNavigate } from "react-router-dom";
+import React, {useState} from "react";
+import { client } from "../api";
+import { useNavigate } from "react-router-dom";
 
-export default function Cart(){
-  const [cart, setCart] = useState({ items: [] });
+export default function Checkout(){
+  const [loading,setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(()=> {
-    const userId = "demo-user"; // adapt for your flow; or extract from token
-    apiClient().get(`/cart/${userId}`).then(r => setCart(r.data)).catch(e => console.error(e));
-  }, []);
-
-  const checkout = () => navigate("/checkout");
+  const placeOrder = async () => {
+    setLoading(true);
+    try {
+      const userId = "demo-user";
+      // In real flow fetch cart items and calculate total
+      const items = [{ productId: "sample", qty: 1 }];
+      const total = 10;
+      const orderRes = await client().post("/orders", { userId, items, total });
+      const payRes = await client().post("/pay", { orderId: orderRes.data.id, userId, amount: total });
+      alert(`Order placed — payment ${payRes.data.status}`);
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      alert("Checkout failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div>
-      <h3>Your Cart</h3>
-      {cart.items && cart.items.length ? (
-        <>
-          <ul>
-            {cart.items.map((it, idx) => <li key={idx}>{it.productId} x {it.qty}</li>)}
-          </ul>
-          <button onClick={checkout}>Checkout</button>
-        </>
-      ) : <div>Your cart is empty</div>}
+    <div className="card" style={{maxWidth:420}}>
+      <h3>Checkout</h3>
+      <button className="btn" onClick={placeOrder} disabled={loading}>{loading ? "Processing..." : "Place order"}</button>
     </div>
   );
 }
