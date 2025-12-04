@@ -1,31 +1,16 @@
-import React, {useEffect, useState} from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { apiClient } from "../api";
+import React from "react";
+import { Link } from "react-router-dom";
 
-export default function Product(){
-  const { id } = useParams();
-  const [product,setProduct] = useState(null);
-  const navigate = useNavigate();
-
-  useEffect(()=> {
-    apiClient().get(`/products/${id}`).then(r => setProduct(r.data)).catch(e => console.error(e));
-  }, [id]);
-
-  const addToCart = async () => {
-    const token = localStorage.getItem("token");
-    if(!token){ navigate("/login"); return; }
-    await apiClient().post(`/cart/${JSON.parse(atob(token.split('.')[1] || ''))?.id || 'me'}/add`, { productId: id, qty: 1 })
-      .then(()=> alert("Added to cart"))
-      .catch(e => console.error(e));
-  };
-
-  if(!product) return <div>Loading...</div>;
+export default function ProductCard({p}){
   return (
-    <div>
-      <h2>{product.title}</h2>
-      <p>{product.description}</p>
-      <p><strong>${product.price}</strong></p>
-      <button onClick={addToCart}>Add to cart</button>
+    <div className="card product-card">
+      <div style={{height:120, background:"#fafafa", display:"flex", alignItems:"center", justifyContent:"center"}}>Image</div>
+      <h4 style={{margin:"10px 0 6px"}}>{p.title}</h4>
+      <p className="small">{p.description ? p.description.slice(0,80) : ""}</p>
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8}}>
+        <strong>${p.price}</strong>
+        <Link to={`/product/${p.id}`}>View</Link>
+      </div>
     </div>
   );
 }
