@@ -4,7 +4,7 @@ output "cluster_name" {
 }
 
 output "cluster_endpoint" {
-  description = "Endpoint for the EKS Kubernetes API"
+  description = "EKS API endpoint"
   value       = module.eks_cluster.cluster_endpoint
 }
 
