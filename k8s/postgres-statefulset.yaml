@@ -45,6 +45,7 @@ spec:
         name: pgdata
       spec:
         accessModes: ["ReadWriteOnce"]
+        storageClassName: gp3        # ✅ REQUIRED FIX
         resources:
           requests:
             storage: 5Gi
