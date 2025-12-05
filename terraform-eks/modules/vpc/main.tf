@@ -16,4 +16,3 @@ module "aws_vpc" {
     Project = var.cluster_name
   }
 }
-
